@@ -29,7 +29,7 @@ public class DetallePedidoDialog extends javax.swing.JDialog {
         initComponents();
     }
     
-    public DetallePedidoDialog(Frame parent, Connection connection, int codigoPedido) {
+     public DetallePedidoDialog(Frame parent, Connection connection, int codigoPedido) {
         super(parent, "Detalle del Pedido", true);
         this.connection = connection;
         this.codigoPedido = codigoPedido;
