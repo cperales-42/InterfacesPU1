@@ -53,7 +53,7 @@ public class BuscarPedidos extends javax.swing.JFrame {
                          "c.nombre,\n" +
                          "ce.nombre,\n" +
                          "e.nombre,\n" +
-                         "cl.nomCompania FROM PEDIDOS p " +
+                         "cl.nomContacto FROM PEDIDOS p " +
                          "JOIN Ciudades c ON p.codCiudad = c.codigo\n" +
                          "JOIN CompEnvios ce ON p.codEmpreEnvio = ce.codigo\n" +
                          "JOIN Empleados e ON p.codEmpleado = e.codigo\n" +
@@ -74,7 +74,7 @@ public class BuscarPedidos extends javax.swing.JFrame {
                 "Ciudad", 
                 "CompaniaEnvio", 
                 "Empleado", 
-                "CompaniaCliente"
+                "Cliente"
             };
 
             // Crear las columnas del modelo de tabla

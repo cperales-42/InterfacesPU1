@@ -35,51 +35,57 @@ public class SeleccionarClienteDialog extends javax.swing.JDialog {
         this.con = conexion;
         this.nombreCompaniaSeleccionada = null;
 
-        // Configurar el layout
-        setLayout(new BorderLayout());
-        setSize(500, 400);
+        setSize(800, 550);
         setLocationRelativeTo(parent);
 
-        // Panel superior con el campo de búsqueda
-        JPanel panelSuperior = new JPanel();
-        panelSuperior.setLayout(new BorderLayout());
-        panelSuperior.add(new JLabel("Buscar: "), BorderLayout.WEST);
-        
-        buscadorTextField = new JTextField();
-        panelSuperior.add(buscadorTextField, BorderLayout.CENTER);
-        add(panelSuperior, BorderLayout.NORTH);
+        // Panel principal vertical
+        JPanel panelPrincipal = new JPanel();
+        panelPrincipal.setLayout(new BoxLayout(panelPrincipal, BoxLayout.Y_AXIS));
+        add(panelPrincipal);
 
-        // Modelo de la tabla
-        modeloTabla = new DefaultTableModel(new String[]{"Código", "Nombre Compañía"}, 0);
+        // === TABLA (con altura fija) ===
+        modeloTabla = new DefaultTableModel(new String[]{"Compañía", "Contacto", "Cargo", "Dirección", "Ciudad", "CP", "Teléfono"}, 0);
         tablaClientes = new JTable(modeloTabla);
-        cargarClientes("");  // Cargar todos los clientes inicialmente
-        add(new JScrollPane(tablaClientes), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(tablaClientes);
+        scrollPane.setPreferredSize(new Dimension(580, 200)); // altura fija
+        panelPrincipal.add(scrollPane);
 
-        // Panel con botón de selección
-        JPanel panelBotones = new JPanel();
+        // === FORMULARIO DE BÚSQUEDA ===
+        JPanel panelFormulario = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panelFormulario.add(new JLabel("Buscar:"));
+        buscadorTextField = new JTextField(20);
+        panelFormulario.add(buscadorTextField);
+        panelPrincipal.add(panelFormulario);
+
+        // === BOTONES ===
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton buscarButton = new JButton("Buscar");
+        JButton reiniciarButton = new JButton("Reiniciar");
         JButton seleccionarButton = new JButton("Seleccionar");
+
+        panelBotones.add(buscarButton);
+        panelBotones.add(reiniciarButton);
         panelBotones.add(seleccionarButton);
-        add(panelBotones, BorderLayout.SOUTH);
+        panelPrincipal.add(panelBotones);
 
-        // Evento para filtrar clientes en la búsqueda
-        buscadorTextField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                cargarClientes(buscadorTextField.getText().trim());
-            }
+        // === Eventos ===
+        buscarButton.addActionListener(e -> cargarClientes(buscadorTextField.getText().trim()));
+        reiniciarButton.addActionListener(e -> {
+            buscadorTextField.setText("");
+            cargarClientes("");
         });
-
-        // Evento para seleccionar un cliente
         seleccionarButton.addActionListener(e -> {
             int filaSeleccionada = tablaClientes.getSelectedRow();
             if (filaSeleccionada != -1) {
                 nombreCompaniaSeleccionada = (String) modeloTabla.getValueAt(filaSeleccionada, 1);
                 dispose();
             } else {
-                JOptionPane.showMessageDialog(SeleccionarClienteDialog.this, 
-                    "Seleccione un cliente", "Aviso", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Seleccione un cliente", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         });
+
+        cargarClientes("");
     }
 
     private void cargarClientes(String filtro) {
@@ -87,14 +93,33 @@ public class SeleccionarClienteDialog extends javax.swing.JDialog {
 
         try {
             Statement stmt = con.createStatement();
-            String sql = "SELECT codigo, nomCompania FROM Clientes";
+            String sql = "SELECT c.nomCompania,\n" +
+                            "c.nomContacto,\n" +
+                            "ca.nombre,\n" +
+                            "c.Direccion,\n" +
+                            "ciu.nombre,\n" +
+                            "c.codigoPostal,\n" +
+                            "c.telefono FROM Clientes c " +
+                            "JOIN Cargos ca ON ca.codigo = c.codCargo " +
+                            "JOIN Ciudades ciu ON c.codCiudad = ciu.codigo";
             if (!filtro.isEmpty()) {
                 sql += " WHERE nomCompania LIKE '%" + filtro + "%'";
             }
             ResultSet resul = stmt.executeQuery(sql);
 
-            while (resul.next()) {
-                modeloTabla.addRow(new Object[]{resul.getInt("codigo"), resul.getString("nomCompania")});
+           while (resul.next()) {
+                String nomCompania = resul.getString("nomCompania");
+                String nomContacto = resul.getString("nomContacto");
+                String cargo = resul.getString("nombre");
+                String direccion = resul.getString("direccion");
+                String ciudad = resul.getString(5);
+                String cp = resul.getString("codigoPostal");
+                String telefono = resul.getString("telefono");
+
+                modeloTabla.addRow(new Object[]{
+                    nomCompania, nomContacto, cargo,
+                    direccion, ciudad, cp, telefono
+                });
             }
         } catch (SQLException e) {
             e.printStackTrace();
